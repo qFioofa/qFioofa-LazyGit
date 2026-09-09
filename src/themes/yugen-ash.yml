@@ -1,0 +1,36 @@
+gui:
+  theme:
+    activeBorderColor:
+      - "#FFBE89" # primary
+      - bold
+    inactiveBorderColor:
+      - "#696969" # color400
+    searchingActiveBorderColor:
+      - "#FFF2AF" # warning
+      - bold
+    optionsTextColor:
+      - "#79a0aa" # tide
+    selectedLineBgColor:
+      - "#303030" # color600
+    inactiveViewSelectedLineBgColor:
+      - "#151515" # color700
+    cherryPickedCommitBgColor:
+      - "#c678dd" # violet
+    cherryPickedCommitFgColor:
+      - "#151515" # color700
+    markedBaseCommitBgColor:
+      - "#D4A017" # gold
+    markedBaseCommitFgColor:
+      - "#151515" # color700
+    unstagedChangesColor:
+      - "#F57A7A" # error
+    defaultFgColor:
+      - "#FAFAFA" # color100
+  authorColors:
+    "*": "#A9A9A9" # color300
+  branchColorPatterns:
+    "^(main|master)$": "#7EAB8E" # success
+    "^(feat|feature)/": "#79a0aa" # tide
+    "^(fix|bugfix|hotfix)/": "#F57A7A" # error
+    "^(release)/": "#FFBE89" # primary
+    "^(chore|docs|refactor)/": "#9db89c" # sage

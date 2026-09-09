@@ -1,0 +1,13 @@
+gui:
+  nerdFontsVersion: "3"
+  border: "rounded"
+  showFileTree: true
+  showBottomLine: true
+  showPanelJumps: true
+  showListFooter: true
+  showRandomTip: false
+  showCommandLog: false
+  expandFocusedSidePanel: false
+  commitHashLength: 8
+  scrollHeight: 2
+  mouseEvents: true

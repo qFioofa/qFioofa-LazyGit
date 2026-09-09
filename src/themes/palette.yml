@@ -1,0 +1,9 @@
+# yugen-ash palette (mirror of ../yugen-ash.nvim/lua/yugen-ash/palette.lua → "main")
+# This file is documentation only — YAML anchors don't cross files, so the theme
+# below inlines these hex codes with a trailing comment naming the palette key.
+#
+#   color100 #FAFAFA   color200 #D4D4D4   color300 #A9A9A9   color400 #696969
+#   color500 #505050   color600 #303030   color700 #151515   color800 #000000
+#   primary  #FFBE89   success #7EAB8E    warning #FFF2AF    error   #F57A7A
+#   tide     #79a0aa   violet  #c678dd    gold    #D4A017    sage    #9db89c
+#   seafoam  #8dd3c3   coral   #FF9E8B    amber   #D4A76A    crimson #bf616a
