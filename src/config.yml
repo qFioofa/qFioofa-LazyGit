@@ -11,3 +11,261 @@ gui:
   commitHashLength: 8
   scrollHeight: 2
   mouseEvents: true
+
+git:
+  autoFetch: true
+  skipHookPrefix: WIP
+  mainBranches:
+    - master
+    - main
+
+customCommands:
+  # ── Conventional Commits ──────────────────────────────────────────────
+  - key: 'c'
+    context: 'files'
+    description: 'Conventional commit'
+    loadingText: 'Committing...'
+    prompts:
+      - type: 'menu'
+        title: 'Commit type'
+        key: 'Type'
+        options:
+          - value: 'feat'
+            name: 'feat'
+            description: 'new feature'
+            key: 'f'
+          - value: 'fix'
+            name: 'fix'
+            description: 'bug fix'
+            key: 'x'
+          - value: 'chore'
+            name: 'chore'
+            description: 'maintenance'
+            key: 'h'
+          - value: 'refactor'
+            name: 'refactor'
+            description: 'code restructuring'
+            key: 'r'
+          - value: 'docs'
+            name: 'docs'
+            description: 'documentation'
+            key: 'd'
+          - value: 'style'
+            name: 'style'
+            description: 'formatting, no logic change'
+            key: 's'
+          - value: 'test'
+            name: 'test'
+            description: 'adding/updating tests'
+            key: 't'
+          - value: 'ci'
+            name: 'ci'
+            description: 'CI/CD changes'
+            key: 'c'
+          - value: 'build'
+            name: 'build'
+            description: 'build system or deps'
+            key: 'b'
+          - value: 'perf'
+            name: 'perf'
+            description: 'performance improvement'
+            key: 'p'
+      - type: 'input'
+        title: 'Scope (optional, e.g. auth, api)'
+        key: 'Scope'
+        initialValue: ''
+      - type: 'input'
+        title: 'Commit message'
+        key: 'Message'
+    command: >-
+      git commit -m "{{.Form.Type}}{{if .Form.Scope}}({{.Form.Scope}}){{end}}: {{.Form.Message}}"
+
+  # ── Copy Branch Name ─────────────────────────────────────────────────
+  - key: 'y'
+    context: 'localBranches'
+    description: 'Copy branch name to clipboard'
+    command: 'printf "%s" "{{.SelectedLocalBranch.Name}}" | xclip -selection clipboard'
+    output: 'none'
+
+  # ── Stash with Name ──────────────────────────────────────────────────
+  - key: 's'
+    context: 'files'
+    description: 'Stash with name'
+    loadingText: 'Stashing...'
+    prompts:
+      - type: 'input'
+        title: 'Stash name'
+        key: 'StashName'
+    command: 'git stash push -m "{{.Form.StashName}}"'
+
+  # ── Reset Menu ───────────────────────────────────────────────────────
+  - key: 'D'
+    context: 'files'
+    description: 'Reset to HEAD (menu)'
+    prompts:
+      - type: 'menu'
+        title: 'Reset mode'
+        key: 'Mode'
+        options:
+          - value: '--soft'
+            name: 'soft'
+            description: 'keep changes staged'
+            key: 's'
+          - value: '--mixed'
+            name: 'mixed'
+            description: 'unstage, keep in worktree'
+            key: 'm'
+          - value: '--hard'
+            name: 'hard'
+            description: 'discard all changes'
+            key: 'h'
+      - type: 'confirm'
+        title: 'Confirm reset'
+        body: 'This will reset HEAD. Continue?'
+    command: 'git reset {{.Form.Mode}} HEAD'
+
+  # ── Open Commit in Browser ───────────────────────────────────────────
+  - key: 'o'
+    context: 'commits'
+    description: 'Open commit in browser'
+    command: 'git open https://{{runCommand "git remote get-url origin" | sed "s/\\.git$//" | sed "s|git@\\([^:]*\\):|https://\\1/"}}/commit/{{.SelectedCommit.Hash}}'
+
+  # ── Squash Down with Message ─────────────────────────────────────────
+  - key: 'S'
+    context: 'commits'
+    description: 'Squash down with message'
+    loadingText: 'Squashing...'
+    prompts:
+      - type: 'input'
+        title: 'New commit message'
+        key: 'Message'
+    command: >-
+      git reset --soft {{.SelectedCommit.Hash}}^ &&
+      git commit -m "{{.Form.Message}}"
+
+  # ── Bisect Run ───────────────────────────────────────────────────────
+  - key: 'B'
+    context: 'commits'
+    description: 'Bisect run'
+    loadingText: 'Bisecting...'
+    prompts:
+      - type: 'input'
+        title: 'Test command'
+        key: 'TestCmd'
+    command: 'git bisect start && git bisect bad && git bisect good {{.SelectedCommit.Hash}}^ && git bisect run {{.Form.TestCmd}}'
+
+  # ── Amend + Force Push ───────────────────────────────────────────────
+  - key: 'A'
+    context: 'files'
+    description: 'Amend commit + force push'
+    loadingText: 'Amending and pushing...'
+    prompts:
+      - type: 'confirm'
+        title: 'Amend last commit and force push?'
+        body: 'This will amend the last commit and force push to origin.'
+    command: 'git commit --amend --no-edit && git push --force-with-lease'
+
+  # ── Gitflow ──────────────────────────────────────────────────────────
+
+  # Feature start
+  - key: '<c-f>'
+    context: 'localBranches'
+    description: 'Gitflow: feature start'
+    loadingText: 'Creating feature branch...'
+    prompts:
+      - type: 'input'
+        title: 'Feature name'
+        key: 'Name'
+    command: 'git flow feature start {{.Form.Name}}'
+
+  # Feature finish
+  - key: '<c-g>'
+    context: 'localBranches'
+    description: 'Gitflow: feature finish'
+    loadingText: 'Finishing feature...'
+    prompts:
+      - type: 'menuFromCommand'
+        title: 'Feature branch to finish'
+        key: 'Branch'
+        command: "git branch --list 'feature/*'"
+    command: 'git flow feature finish {{.Form.Branch}}'
+
+  # Release start
+  - key: '<c-r>'
+    context: 'localBranches'
+    description: 'Gitflow: release start'
+    loadingText: 'Creating release branch...'
+    prompts:
+      - type: 'input'
+        title: 'Release version (e.g. 1.2.0)'
+        key: 'Version'
+    command: 'git flow release start {{.Form.Version}}'
+
+  # Release finish
+  - key: '<c-t>'
+    context: 'localBranches'
+    description: 'Gitflow: release finish'
+    loadingText: 'Finishing release...'
+    prompts:
+      - type: 'menuFromCommand'
+        title: 'Release branch to finish'
+        key: 'Branch'
+        command: "git branch --list 'release/*'"
+    command: 'git flow release finish {{.Form.Branch}}'
+
+  # Hotfix start
+  - key: '<c-h>'
+    context: 'localBranches'
+    description: 'Gitflow: hotfix start'
+    loadingText: 'Creating hotfix branch...'
+    prompts:
+      - type: 'input'
+        title: 'Hotfix version (e.g. 1.2.1)'
+        key: 'Version'
+    command: 'git flow hotfix start {{.Form.Version}}'
+
+  # Hotfix finish
+  - key: '<c-j>'
+    context: 'localBranches'
+    description: 'Gitflow: hotfix finish'
+    loadingText: 'Finishing hotfix...'
+    prompts:
+      - type: 'menuFromCommand'
+        title: 'Hotfix branch to finish'
+        key: 'Branch'
+        command: "git branch --list 'hotfix/*'"
+    command: 'git flow hotfix finish {{.Form.Branch}}'
+
+  # Init gitflow
+  - key: '<c-i>'
+    context: 'status'
+    description: 'Gitflow: init'
+    loadingText: 'Initializing gitflow...'
+    prompts:
+      - type: 'confirm'
+        title: 'Initialize gitflow in this repo?'
+        body: 'Will run "git flow init -d" with default branch names.'
+    command: 'git flow init -d'
+
+  # Feature track (publish)
+  - key: '<c-p>'
+    context: 'localBranches'
+    description: 'Gitflow: feature publish'
+    loadingText: 'Publishing feature...'
+    prompts:
+      - type: 'menuFromCommand'
+        title: 'Feature branch to publish'
+        key: 'Branch'
+        command: "git branch --list 'feature/*'"
+    command: 'git flow feature publish {{.Form.Branch}}'
+
+  # Feature pull
+  - key: '<c-u>'
+    context: 'localBranches'
+    description: 'Gitflow: feature pull'
+    loadingText: 'Pulling feature...'
+    prompts:
+      - type: 'input'
+        title: 'Feature branch name'
+        key: 'Name'
+    command: 'git flow feature pull origin {{.Form.Name}}'
