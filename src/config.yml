@@ -167,16 +167,55 @@ customCommands:
 
   # ── Gitflow ──────────────────────────────────────────────────────────
 
-  # Feature start
-  - key: '<c-f>'
+  # New branch (unified menu)
+  - key: '<c-n>'
     context: 'localBranches'
-    description: 'Gitflow: feature start'
-    loadingText: 'Creating feature branch...'
+    description: 'Gitflow: new branch'
+    loadingText: 'Creating branch...'
     prompts:
+      - type: 'menu'
+        title: 'Branch type'
+        key: 'Type'
+        options:
+          - value: 'feature'
+            name: 'Feature'
+            description: 'new feature branch off develop'
+            key: 'f'
+          - value: 'release'
+            name: 'Release'
+            description: 'release branch off develop'
+            key: 'r'
+          - value: 'hotfix'
+            name: 'Hotfix'
+            description: 'hotfix branch off main'
+            key: 'h'
+          - value: 'develop'
+            name: 'Develop'
+            description: 'checkout/create develop branch'
+            key: 'd'
+          - value: 'custom'
+            name: 'Custom'
+            description: 'plain branch, no gitflow prefix'
+            key: 'c'
       - type: 'input'
-        title: 'Feature name'
+        title: 'Task ID (optional, e.g. PROJ-123)'
+        key: 'TaskID'
+        initialValue: ''
+      - type: 'input'
+        title: 'Branch name'
         key: 'Name'
-    command: 'git flow feature start {{.Form.Name}}'
+    command: >-
+      {{if eq .Form.Type "feature"}}
+      git flow feature start {{if .Form.TaskID}}{{.Form.TaskID}}-{{end}}{{.Form.Name}}
+      {{else if eq .Form.Type "release"}}
+      git flow release start {{.Form.Name}}
+      {{else if eq .Form.Type "hotfix"}}
+      git flow hotfix start {{.Form.Name}}
+      {{else if eq .Form.Type "develop"}}
+      git checkout develop 2>/dev/null || git checkout -b develop main
+      {{else if eq .Form.Type "custom"}}
+      git checkout -b {{if .Form.TaskID}}{{.Form.TaskID}}-{{end}}{{.Form.Name}}
+      {{end}}
 
   # Feature finish
   - key: '<c-g>'
@@ -190,17 +229,6 @@ customCommands:
         command: "git branch --list 'feature/*'"
     command: 'git flow feature finish {{.Form.Branch}}'
 
-  # Release start
-  - key: '<c-r>'
-    context: 'localBranches'
-    description: 'Gitflow: release start'
-    loadingText: 'Creating release branch...'
-    prompts:
-      - type: 'input'
-        title: 'Release version (e.g. 1.2.0)'
-        key: 'Version'
-    command: 'git flow release start {{.Form.Version}}'
-
   # Release finish
   - key: '<c-t>'
     context: 'localBranches'
@@ -212,17 +240,6 @@ customCommands:
         key: 'Branch'
         command: "git branch --list 'release/*'"
     command: 'git flow release finish {{.Form.Branch}}'
-
-  # Hotfix start
-  - key: '<c-h>'
-    context: 'localBranches'
-    description: 'Gitflow: hotfix start'
-    loadingText: 'Creating hotfix branch...'
-    prompts:
-      - type: 'input'
-        title: 'Hotfix version (e.g. 1.2.1)'
-        key: 'Version'
-    command: 'git flow hotfix start {{.Form.Version}}'
 
   # Hotfix finish
   - key: '<c-j>'
