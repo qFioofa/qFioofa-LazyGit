@@ -19,6 +19,16 @@ git:
     - master
     - main
 
+# Editor integration adapted from phtea/dotfiles:
+# https://github.com/phtea/dotfiles/blob/main/lazygit/.config/lazygit/config.yml
+# The upstream `openInTerminal` key is not a valid lazygit option; the
+# nvim-remote preset already suspends lazygit based on whether $NVIM is set.
+os:
+  editAtLine: '[ -z "$NVIM" ] && (nvim +{{line}} -- {{filename}}) || (nvim --server "$NVIM" --remote-send "q" && nvim --server "$NVIM" --remote {{filename}} && nvim --server "$NVIM" --remote-send "{{line}}gg")'
+  openDirInEditor: '[ -z "$NVIM" ] && (nvim -- {{dir}}) || (nvim --server "$NVIM" --remote-send "q" && nvim --server "$NVIM" --remote {{dir}})'
+  edit: '[ -z "$NVIM" ] && (nvim -- {{filename}}) || (nvim --server "$NVIM" --remote-send "q" && nvim --server "$NVIM" --remote {{filename}})'
+  editPreset: 'nvim-remote'
+
 customCommands:
   # ── Conventional Commits ──────────────────────────────────────────────
   - key: 'c'
