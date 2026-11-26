@@ -1,3 +1,5 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/jesseduffield/lazygit/v0.63.1/schema/config.json
+
 gui:
   nerdFontsVersion: "3"
   border: "rounded"
@@ -11,6 +13,16 @@ gui:
   commitHashLength: 8
   scrollHeight: 2
   mouseEvents: true
+  showNumstatInFilesView: true
+  showDivergenceFromBaseBranch: arrowAndNumber
+  filterMode: fuzzy
+  fileTreeSortOrder: foldersFirst
+  statusPanelView: allBranchesLog
+  sidePanelWidth: 0.25
+  scrollOffMargin: 5
+  shrinkSidePanelsToContent: true
+  useHunkModeInStagingView: true
+  wrapLinesInStagingView: true
 
 git:
   autoFetch: true
@@ -18,6 +30,32 @@ git:
   mainBranches:
     - master
     - main
+  parseEmoji: true
+  autoForwardBranches: allBranches
+  fetchAll: true
+  overrideGpg: true
+  remoteBranchSortOrder: alphabetical
+  pagers:
+    - name: delta
+      pager: >-
+        delta --paging=never --dark --line-numbers --hyperlinks
+        --hyperlinks-file-link-format="lazygit-edit://{path}:{line}"
+        --syntax-theme="OneHalfDark"
+        --file-style "#FFBE89"
+        --hunk-header-style "#79a0aa"
+        --minus-style 'syntax "#2b1a1c"'
+        --plus-style 'syntax "#1a2b20"'
+        --line-numbers-minus-style "#F57A7A"
+        --line-numbers-plus-style "#7EAB8E"
+    - name: delta-side-by-side
+      pager: >-
+        delta --paging=never --dark --side-by-side
+        --syntax-theme="OneHalfDark"
+        --file-style "#FFBE89"
+        --hunk-header-style "#79a0aa"
+    - name: difft
+      externalDiffCommand: difft --color=always --display=inline --background=dark
+    - {} # built-in diff renderer
 
 # Editor integration adapted from phtea/dotfiles:
 # https://github.com/phtea/dotfiles/blob/main/lazygit/.config/lazygit/config.yml
@@ -28,6 +66,20 @@ os:
   openDirInEditor: '[ -z "$NVIM" ] && (nvim -- {{dir}}) || (nvim --server "$NVIM" --remote-send "q" && nvim --server "$NVIM" --remote {{dir}})'
   edit: '[ -z "$NVIM" ] && (nvim -- {{filename}}) || (nvim --server "$NVIM" --remote-send "q" && nvim --server "$NVIM" --remote {{filename}})'
   editPreset: 'nvim-remote'
+  copyToClipboardCmd: 'wl-copy {{text}}'
+  readFromClipboardCmd: 'wl-paste --no-newline'
+
+disableStartupPopups: true
+notARepository: 'skip'
+promptToReturnFromSubprocess: false
+quitOnTopLevelReturn: true
+update:
+  method: 'never'
+
+keybinding:
+  universal:
+    scrollDownMain-alt2: '<c-f>'
+    scrollUpMain-alt2: '<c-b>'
 
 customCommands:
   # ── Conventional Commits ──────────────────────────────────────────────
@@ -94,7 +146,7 @@ customCommands:
   - key: 'y'
     context: 'localBranches'
     description: 'Copy branch name to clipboard'
-    command: 'printf "%s" "{{.SelectedLocalBranch.Name}}" | xclip -selection clipboard'
+    command: 'printf "%s" {{.SelectedLocalBranch.Name | quote}} | wl-copy'
     output: 'none'
 
   # ── Stash with Name ──────────────────────────────────────────────────
@@ -133,12 +185,6 @@ customCommands:
         title: 'Confirm reset'
         body: 'This will reset HEAD. Continue?'
     command: 'git reset {{.Form.Mode}} HEAD'
-
-  # ── Open Commit in Browser ───────────────────────────────────────────
-  - key: 'o'
-    context: 'commits'
-    description: 'Open commit in browser'
-    command: 'git open https://{{runCommand "git remote get-url origin" | sed "s/\\.git$//" | sed "s|git@\\([^:]*\\):|https://\\1/"}}/commit/{{.SelectedCommit.Hash}}'
 
   # ── Squash Down with Message ─────────────────────────────────────────
   - key: 'S'
@@ -236,7 +282,7 @@ customCommands:
       - type: 'menuFromCommand'
         title: 'Feature branch to finish'
         key: 'Branch'
-        command: "git branch --list 'feature/*'"
+        command: "git branch --list 'feature/*' --format='%(refname:short)'"
     command: 'git flow feature finish {{.Form.Branch}}'
 
   # Release finish
@@ -248,7 +294,7 @@ customCommands:
       - type: 'menuFromCommand'
         title: 'Release branch to finish'
         key: 'Branch'
-        command: "git branch --list 'release/*'"
+        command: "git branch --list 'release/*' --format='%(refname:short)'"
     command: 'git flow release finish {{.Form.Branch}}'
 
   # Hotfix finish
@@ -260,7 +306,7 @@ customCommands:
       - type: 'menuFromCommand'
         title: 'Hotfix branch to finish'
         key: 'Branch'
-        command: "git branch --list 'hotfix/*'"
+        command: "git branch --list 'hotfix/*' --format='%(refname:short)'"
     command: 'git flow hotfix finish {{.Form.Branch}}'
 
   # Init gitflow
@@ -283,7 +329,7 @@ customCommands:
       - type: 'menuFromCommand'
         title: 'Feature branch to publish'
         key: 'Branch'
-        command: "git branch --list 'feature/*'"
+        command: "git branch --list 'feature/*' --format='%(refname:short)'"
     command: 'git flow feature publish {{.Form.Branch}}'
 
   # Feature pull
@@ -296,3 +342,40 @@ customCommands:
         title: 'Feature branch name'
         key: 'Name'
     command: 'git flow feature pull origin {{.Form.Name}}'
+
+  # ── History & Cleanup ────────────────────────────────────────────────
+  - key: 'u'
+    context: 'files'
+    description: 'Undo last commit (soft reset)'
+    command: 'git reset --soft HEAD~1'
+
+  - key: 'b'
+    context: 'files'
+    description: 'Blame file'
+    command: 'git blame --date=short {{.SelectedFile.Name | quote}}'
+    output: 'terminal'
+
+  - key: 'X'
+    context: 'localBranches'
+    description: 'Prune local branches with gone upstream'
+    loadingText: 'Pruning...'
+    command: >-
+      git for-each-ref --format='%(refname:short) %(upstream:track) %(worktreepath)' refs/heads
+      | awk '$2 == "[gone]" && $3 == "" {print $1}'
+      | xargs -r git branch -D
+
+  - key: 'X'
+    context: 'remotes'
+    description: 'Prune deleted remote branches'
+    loadingText: 'Pruning...'
+    command: 'git remote prune {{.SelectedRemote.Name}}'
+
+  - key: 'V'
+    context: 'localBranches'
+    description: 'Checkout GitHub PR'
+    loadingText: 'Checking out PR...'
+    prompts:
+      - type: 'input'
+        title: 'PR number'
+        key: 'PR'
+    command: 'gh pr checkout {{.Form.PR}}'

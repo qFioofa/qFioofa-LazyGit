@@ -1,8 +1,16 @@
 #!/bin/bash
 set -e
 
-SRC="$(dirname "$(dirname "${BASH_SOURCE[0]}")")/src"
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+SRC="$ROOT/src"
 DEST="${XDG_CONFIG_HOME:-$HOME/.config}/lazygit/config.yml"
+
+if [ -L "$DEST" ]; then
+  echo "error: $DEST is a symlink (managed by Home Manager)." >&2
+  echo "Build the flake that imports this module instead, or override it with" >&2
+  echo "--override-input lazygit-config path:$ROOT ." >&2
+  exit 1
+fi
 
 mkdir -p "$(dirname "$DEST")"
 

@@ -41,6 +41,17 @@
         '';
       in
       {
+        home.packages = with pkgs; [
+          lazygit
+          delta
+          difftastic
+          bat
+          gitflow
+          gh
+          wl-clipboard
+          xdg-utils
+        ];
+
         xdg.configFile."lazygit/config.yml".source = mergedConfig;
       };
   };
