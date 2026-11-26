@@ -80,6 +80,13 @@ keybinding:
   universal:
     scrollDownMain-alt2: '<c-f>'
     scrollUpMain-alt2: '<c-b>'
+    # Панели по порядку: status, files (diff), branches, commits, stash
+    jumpToBlock:
+      - '0'
+      - '1'
+      - '3'
+      - '4'
+      - '5'
 
 customCommands:
   # ── Conventional Commits ──────────────────────────────────────────────
